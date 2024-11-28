@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciamento de Autores</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #4CAF50;
+    }
+
+    section {
+      background: #fff;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"], button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #e8f5e9;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+      border-left: 4px solid #4CAF50;
+    }
+
+    #authorDetails {
+      margin-top: 20px;
+      display: none;
+    }
+
+    #authorInfo {
+      background: #e0f7fa;
+      padding: 10px;
+      border-left: 4px solid #0288d1;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 600px) {
+      section {
+        margin: 10px;
+      }
+
+      input[type="text"], button {
+        font-size: 14px;
+      }
+
+      h1, h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Gerenciamento de Autores</h1>
+
+  <!-- Formulário para adicionar autor -->
+  <section>
+    <h2>Adicionar Autor</h2>
+    <form id="addAuthorForm">
+      <label for="name">Nome:</label>
+      <input type="text" id="name" name="name" placeholder="Digite o nome do autor" required>
+      <label for="nationality">Nacionalidade:</label>
+      <input type="text" id="nationality" name="nationality" placeholder="Digite a nacionalidade">
+      <button type="submit">Adicionar Autor</button>
+    </form>
+  </section>
+
+  <!-- Listagem de autores -->
+  <section>
+    <h2>Lista de Autores</h2>
+    <button id="loadAuthors">Carregar Autores</button>
+    <ul id="authorsList"></ul>
+  </section>
+
+  <!-- Buscar, atualizar e deletar autor -->
+  <section>
+    <h2>Gerenciar Autor</h2>
+    <form id="searchAuthorForm">
+      <label for="authorId">ID do Autor:</label>
+      <input type="text" id="authorId" name="authorId" placeholder="Digite o ID do autor" required>
+      <button type="button" id="searchAuthor">Buscar Autor</button>
+    </form>
+
+    <div id="authorDetails">
+      <h3>Detalhes do Autor</h3>
+      <p id="authorInfo"></p>
+
+      <!-- Atualizar autor -->
+      <h3>Atualizar Autor</h3>
+      <form id="updateAuthorForm">
+        <label for="updateName">Novo Nome:</label>
+        <input type="text" id="updateName" name="updateName" placeholder="Digite o novo nome">
+        <label for="updateNationality">Nova Nacionalidade:</label>
+        <input type="text" id="updateNationality" name="updateNationality" placeholder="Digite a nova nacionalidade">
+        <button type="submit">Atualizar Autor</button>
+      </form>
+
+      <!-- Deletar autor -->
+      <button id="deleteAuthor" style="background: #f44336;">Deletar Autor</button>
+    </div>
+  </section>
+
+  <script>
+    const apiUrl = 'http://localhost:3000/authors'; // Substitua pela URL real da API
+    const apiKey = '123'; // Chave da API
+
+    // Funções de manipulação da API (como na versão anterior)
+    async function loadAuthors() {
+      try {
+        const response = await fetch(apiUrl, { headers: { 'api_key': apiKey } });
+        if (!response.ok) throw new Error('Erro ao carregar autores');
+        const authors = await response.json();
+        displayAuthors(authors);
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    function displayAuthors(authors) {
+      const authorsList = document.getElementById('authorsList');
+      authorsList.innerHTML = '';
+      authors.forEach(author => {
+        const li = document.createElement('li');
+        li.textContent = `ID: ${author._id}, Nome: ${author.name}, Nacionalidade: ${author.nationality || 'Não especificado'}`;
+        authorsList.appendChild(li);
+      });
+    }
+
+    async function addAuthor(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      const nationality = document.getElementById('nationality').value;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'api_key': apiKey },
+          body: JSON.stringify({ name, nationality })
+        });
+        if (!response.ok) throw new Error('Erro ao adicionar autor');
+        alert('Autor adicionado com sucesso');
+        document.getElementById('addAuthorForm').reset();
+        loadAuthors();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+    async function searchAuthor() {
+        const authorId = document.getElementById('authorId').value;
+        try {
+          const response = await fetch(`${apiUrl}/${authorId}`, { headers: { 'api_key': apiKey } });
+          if (!response.ok) throw new Error('Erro ao buscar autor');
+          const author = await response.json();
+          displayAuthorDetails(author);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+  
+      // Exibir detalhes do autor
+      function displayAuthorDetails(author) {
+        document.getElementById('authorDetails').style.display = 'block';
+        document.getElementById('authorInfo').textContent = `ID: ${author._id}, Nome: ${author.name}, Nacionalidade: ${author.nationality || 'Não especificado'}`;
+      }
+  
+      // Atualizar autor
+      async function updateAuthor(event) {
+        event.preventDefault();
+        const authorId = document.getElementById('authorId').value;
+        const name = document.getElementById('updateName').value;
+        const nationality = document.getElementById('updateNationality').value;
+  
+        try {
+          const response = await fetch(`${apiUrl}/${authorId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'api_key': apiKey },
+            body: JSON.stringify({ name, nationality })
+          });
+          if (!response.ok) throw new Error('Erro ao atualizar autor');
+          alert('Autor atualizado com sucesso');
+          loadAuthors();
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+  
+      // Deletar autor
+      async function deleteAuthor() {
+        const authorId = document.getElementById('authorId').value;
+        try {
+          const response = await fetch(`${apiUrl}/${authorId}`, {
+            method: 'DELETE',
+            headers: { 'api_key': apiKey }
+          });
+          if (!response.ok) throw new Error('Erro ao deletar autor');
+          alert('Autor deletado com sucesso');
+          loadAuthors();
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    document.getElementById('addAuthorForm').addEventListener('submit', addAuthor);
+    document.getElementById('loadAuthors').addEventListener('click', loadAuthors);
+    document.getElementById('searchAuthor').addEventListener('click', searchAuthor);
+    document.getElementById('updateAuthorForm').addEventListener('submit', updateAuthor);
+    document.getElementById('deleteAuthor').addEventListener('click', deleteAuthor);
+    // Os eventos para busca, atualização e exclusão seguem como antes.
+  </script>
+</body>
+</html>
